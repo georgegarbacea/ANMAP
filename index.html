@@ -1,1 +1,166 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ANMAP_login</title>
+<style>
+  :root{--bg:#f4f7fb;--card:#fff;--accent:#165fb1;--muted:#6e7480}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:#111}
+  .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{width:100%;max-width:420px;background:var(--card);padding:18px;border-radius:12px;box-shadow:0 8px 28px rgba(13,30,70,0.07)}
+  h1{margin:0 0 8px;font-size:20px}
+  p.lead{margin:0 0 12px;color:var(--muted);font-size:14px}
+  label{font-size:13px;color:#333}
+  input{width:100%;padding:12px;margin-top:8px;border-radius:9px;border:1px solid #e6e9ef;font-size:15px}
+  button{width:100%;padding:12px;margin-top:12px;border-radius:9px;border:0;background:var(--accent);color:white;font-weight:600}
+  .note{margin-top:12px;color:var(--muted);font-size:13px}
+  #secureArea{display:none;margin-top:14px}
+  .linkBtn{display:block;width:100%;text-align:center;padding:12px;border-radius:9px;border:1px solid #dfe6f3;background:transparent;color:var(--accent);text-decoration:none;font-weight:600;margin-top:10px}
+  small.warn{display:block;margin-top:10px;color:#9a1c1c}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" role="main" aria-labelledby="title">
+      <h1 id="title">ANMAP_login</h1>
+      <p class="lead">Autentificare necesară. Conectarea nu se păstrează — trebuie să te autentifici la fiecare acces.</p>
+
+      <div id="loginBox">
+        <label for="user">Utilizator</label>
+        <input id="user" autocomplete="username" placeholder="nume" />
+        <label for="pass">Parolă</label>
+        <input id="pass" type="password" autocomplete="current-password" placeholder="parolă" />
+        <label style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <input id="autoGo" type="checkbox">
+          <span style="font-size:13px;color:#444">Deschide automat prima destinație după login</span>
+        </label>
+        <button id="btnLogin">Conectare</button>
+        <small class="note">Aceasta este o protecție locală. Pentru acces real securizat folosește Cloudflare Access.</small>
+        <small class="warn" id="warn" style="display:none"></small>
+      </div>
+
+      <div id="secureArea" aria-hidden="true">
+        <p class="note">Alege destinația (linkurile nu menționează explicit aplicații):</p>
+        <div id="links"></div>
+        <button id="btnLogout" style="margin-top:12px;padding:10px;border-radius:9px;border:0;background:#ddd;color:#222">Deconectare</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ================= CONFIGURARE =======================
+   Username-urile sunt presetate: george_g și anca_g
+   Înlocuiește valorile HASH_SHA256 cu hashurile reale.
+   Vezi mai jos instrucțiunile pentru generare.
+=======================================================*/
+
+const USERS = {
+  "george_g": "REPLACE_WITH_HASH_GEORGE", // ex: a1b2c3...
+  "anca_g":   "REPLACE_WITH_HASH_ANCA"    // ex: d4e5f6...
+};
+
+// Linkurile din hub (poți adăuga câte vrei)
+const LINKS = [
+  {
+    title: "Acces principal (App)",
+    kind: "app",
+    deep: "tg://resolve?domain=YourGroup",  // înlocuiește cu deep-link-ul tău
+    web:  "https://t.me/YourGroupOrInviteLink" // fallback web
+  },
+  {
+    title: "Acces prin browser",
+    kind: "web",
+    url:  "https://web.telegram.org/" // sau altă destinație
+  }
+];
+
+/* ================== FUNCȚII ====================== */
+
+const userInput = document.getElementById('user');
+const passInput = document.getElementById('pass');
+const btnLogin = document.getElementById('btnLogin');
+const secureArea = document.getElementById('secureArea');
+const loginBox = document.getElementById('loginBox');
+const warn = document.getElementById('warn');
+const btnLogout = document.getElementById('btnLogout');
+
+// SHA-256 helper
+async function sha256hex(message) {
+  const msgUint8 = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Login handler
+btnLogin.addEventListener('click', async ()=>{
+  warn.style.display='none';
+  const u = (userInput.value||'').trim();
+  const p = passInput.value||'';
+  if(!u||!p){warn.textContent='Completează utilizator și parolă.';warn.style.display='block';return;}
+  if(!(u in USERS)){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
+
+  const h = await sha256hex(p);
+  if(h!==USERS[u]){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
+
+  showSecureArea();
+});
+
+// Crează butoanele din hub
+function renderLinks(){
+  const box=document.getElementById('links');
+  box.innerHTML='';
+  LINKS.forEach((lnk,idx)=>{
+    const btn=document.createElement('button');
+    btn.className='linkBtn';
+    btn.textContent=lnk.title;
+    btn.onclick=()=>openDest(lnk);
+    box.appendChild(btn);
+  });
+}
+
+// Deschidere cu fallback (app→web)
+function openDest(lnk){
+  if(lnk.kind==='app'){
+    window.location=lnk.deep;
+    setTimeout(()=>window.open(lnk.web,'_blank','noopener'),700);
+  }else if(lnk.kind==='web'){
+    window.open(lnk.url,'_blank','noopener');
+  }
+}
+
+// După autentificare
+function showSecureArea(){
+  loginBox.style.display='none';
+  secureArea.style.display='block';
+  secureArea.setAttribute('aria-hidden','false');
+  renderLinks();
+
+  const autoGo=document.getElementById('autoGo');
+  if(autoGo&&autoGo.checked&&LINKS.length>0){
+    setTimeout(()=>openDest(LINKS[0]),300);
+  }
+}
+
+// Logout
+btnLogout.addEventListener('click',()=>{
+  passInput.value='';
+  userInput.value='';
+  secureArea.style.display='none';
+  loginBox.style.display='block';
+});
+
+// Reload când tabul devine invizibil → re-login forțat
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){
+    try{location.reload();}catch(e){}
+  }
+});
+
+// Helper pentru generare hash local (în consolă)
+window._ANMAP={sha256hex};
+</script>
+</body>
+</html>
 

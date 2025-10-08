@@ -16,38 +16,120 @@
   h2.subtitle{margin:0 0 12px;font-size:15px;font-weight:500;color:var(--muted)}
   label{font-size:13px;color:#333}
   input, select, textarea{width:100%;padding:12px;margin-top:6px;border-radius:9px;border:1px solid var(--border);font-size:15px;background:#fff}
-  .section{margin-top:16px;padding-top:8px;border-top:1px dashed #e3e8f3}
+  textarea{min-height:90px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr;gap:12px}
+  .row.cols-2{grid-template-columns:1fr 1fr}
+  .row.cols-3{grid-template-columns:1fr 1fr 1fr}
+  @media (max-width:720px){ .row.cols-2, .row.cols-3{grid-template-columns:1fr} }
   button{padding:12px 16px;border-radius:9px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
+  .btn-outline{background:transparent;color:var(--accent);border:1px solid #dfe3f0}
+  .section{margin-top:16px;padding-top:8px;border-top:1px dashed #e3e8f3}
+  .note{margin-top:10px;color:var(--muted);font-size:13px}
+  #secureArea{display:none;margin-top:14px}
+  small.warn{display:block;margin-top:10px;color:#9a1c1c}
+  .footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
   .tg-link{display:inline-block;text-align:center;padding:12px 16px;border-radius:9px;border:1px solid #dfe6f3;background:transparent;color:#0f3d7a;text-decoration:none;font-weight:700}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  @media print{ .wrap{padding:0} .card{box-shadow:none;border-radius:0} #loginBox,.topbar,.tg-actions{display:none!important} }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>ANMAP_login</h1>
+    <div class="card" role="main" aria-labelledby="title">
+      <h1 id="title">ANMAP_login</h1>
       <h2 class="subtitle">Agenția Națională de Mediu și Arii Protejate</h2>
 
       <!-- LOGIN -->
       <div id="loginBox">
-        <div>
-          <label for="user">Utilizator</label>
-          <input id="user" placeholder="Introduceți utilizatorul" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');"/>
+        <div class="row cols-2">
+          <div>
+            <label for="user">Utilizator</label>
+            <input id="user" placeholder="Introduceți utilizatorul" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');"/>
+          </div>
+          <div>
+            <label for="pass">Parolă</label>
+            <input id="pass" type="password" placeholder="Introduceți parola" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');"/>
+          </div>
         </div>
-        <div>
-          <label for="pass">Parolă</label>
-          <input id="pass" type="password" placeholder="Introduceți parola" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');"/>
-        </div>
-        <div class="section">
+        <div class="row section">
           <button id="btnLogin">Conectare</button>
-          <small class="warn" id="warn" style="color:#a00;display:none"></small>
+          <small class="warn" id="warn" style="display:none"></small>
+          <small class="note">Protecție locală (client-side). Sesiunea se resetează automat la ieșire.</small>
         </div>
       </div>
 
       <!-- SECURE AREA -->
-      <div id="secureArea" style="display:none">
-        <p>Formular intern — Proces-verbal de amplasament</p>
-        <a class="tg-link" id="tgWeb" href="#">ANMAP_web</a><br>
-        <button id="btnLogout" style="margin-top:10px">Deconectare</button>
+      <div id="secureArea" aria-hidden="true">
+        <div class="topbar">
+          <p class="note" style="margin:0">Formular intern — Proces-verbal de amplasament</p>
+          <button id="btnLogout" class="btn-outline">Deconectare</button>
+        </div>
+
+        <!-- FORMULAR -->
+        <form id="pvForm" class="section">
+          <div class="row cols-3">
+            <div><label>Nr. proces-verbal</label><input name="nr_pv" placeholder="ex: 123/2025"></div>
+            <div><label>Data</label><input name="data" type="date"></div>
+            <div><label>Ora</label><input name="ora" type="time"></div>
+          </div>
+
+          <div class="row cols-2">
+            <div><label>Județ</label><input name="judet" placeholder="ex: Brașov"></div>
+            <div><label>UAT / Localitate</label><input name="uat" placeholder="ex: Moieciu"></div>
+          </div>
+
+          <div class="row cols-2">
+            <div><label>Adresă / Denumire amplasament</label><input name="adresa" placeholder="ex: Str. Principală nr. 1 / Pajiște alpină..."></div>
+            <div>
+              <label>Sistem de referință</label>
+              <select name="srs">
+                <option>WGS84 (EPSG:4326)</option>
+                <option>Stereo 70 (EPSG:3844)</option>
+                <option>ETRS89 / LAEA Europe (EPSG:3035)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row cols-3">
+            <div><label>Latitudine (φ)</label><input name="lat" placeholder="ex: 45.5"></div>
+            <div><label>Longitudine (λ)</label><input name="lon" placeholder="ex: 25.35"></div>
+            <div><label>Cota altitudinală (m)</label><input name="alt" placeholder="ex: 950"></div>
+          </div>
+
+          <div class="row cols-2">
+            <div><label>Beneficiar / Titular</label><input name="beneficiar" placeholder="Nume persoană / societate"></div>
+            <div><label>Reprezentant</label><input name="reprezentant" placeholder="Nume și calitate"></div>
+          </div>
+
+          <div class="row cols-2">
+            <div><label>Agent constatator</label><input name="agent" placeholder="Nume și funcție"></div>
+            <div><label>Însoțitori / Martori</label><input name="insotitori" placeholder="Nume / instituții"></div>
+          </div>
+
+          <div class="row"><label>Scop / Obiectiv vizită</label><textarea name="scop" placeholder="ex: verificare amplasament, evaluare impact etc."></textarea></div>
+          <div class="row"><label>Descriere amplasament</label><textarea name="descriere" placeholder="Caracteristici teren, vecinătăți, habitate etc."></textarea></div>
+          <div class="row"><label>Observații</label><textarea name="observatii" placeholder="Aspecte suplimentare, neconformități etc."></textarea></div>
+
+          <div class="row cols-2">
+            <div><label>Măsuri dispuse</label><textarea name="masuri" placeholder="Măsuri/obligații, condiții etc."></textarea></div>
+            <div><label>Termen</label><input name="termen" type="date"></div>
+          </div>
+
+          <div class="row cols-2">
+            <div><label>Anexe</label><input name="anexe" placeholder="Planșe, poze, coordonate"></div>
+            <div><label>Semnături</label><input name="semnaturi" placeholder="Agent / Reprezentant"></div>
+          </div>
+
+          <div class="footer-actions">
+            <button type="button" id="btnPrint">Exportă PDF / Print</button>
+            <button type="reset" class="btn-outline">Resetează formularul</button>
+          </div>
+        </form>
+
+        <!-- Telegram link -->
+        <div class="section tg-actions">
+          <a class="tg-link" id="tgWeb" href="https://web.telegram.org/" target="_blank">ANMAP_web</a>
+        </div>
       </div>
     </div>
   </div>
@@ -72,18 +154,18 @@ async function sha256hex(msg){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-function toLogin(){
+function resetLogin(){
   secure.style.display='none';
   login.style.display='block';
-  user.value='';pass.value='';
+  user.value=''; pass.value='';
 }
 
-function forceLoginReload(){
-  // Forțăm întotdeauna revenirea la login, chiar și când browserul păstrează tab-ul Telegram
+function forceReload(){
   window.location.replace(window.location.origin+window.location.pathname+'?r='+Date.now());
 }
 
-btn.addEventListener('click',async()=>{
+// Login logic
+btn.addEventListener('click', async()=>{
   warn.style.display='none';
   const u=user.value.trim(), p=pass.value;
   if(!u||!p){warn.textContent='Completează utilizator și parolă.';warn.style.display='block';return;}
@@ -93,25 +175,17 @@ btn.addEventListener('click',async()=>{
   login.style.display='none'; secure.style.display='block';
 });
 
-logout.addEventListener('click',forceLoginReload);
+logout.addEventListener('click', forceReload);
+tg.addEventListener('click', ()=>{ setTimeout(forceReload,200); });
+document.getElementById('btnPrint').addEventListener('click',()=>window.print());
 
-// 🔹 deschide Telegram în tab NOU și resetează sesiunea imediat
-tg.addEventListener('click', e=>{
-  e.preventDefault();
-  window.open('https://web.telegram.org/', '_blank');
-  setTimeout(forceLoginReload,100);
+// Reload la revenire în browser sau ieșire
+['visibilitychange','blur','pagehide','beforeunload','focus','pageshow'].forEach(e=>{
+  window.addEventListener(e,()=>{ forceReload(); });
 });
 
-// 🔹 când ieși din aplicație / browser / tab sau revii, revine la login
-['pagehide','visibilitychange','blur','focus','pageshow','beforeunload'].forEach(evt=>{
-  window.addEventListener(evt, ()=>{
-    if(evt==='visibilitychange' && document.visibilityState==='hidden'){ forceLoginReload(); }
-    else if(evt!=='visibilitychange'){ forceLoginReload(); }
-  });
-});
-
-// reset UI la încărcare
-document.addEventListener('DOMContentLoaded', toLogin);
+document.addEventListener('DOMContentLoaded', resetLogin);
 </script>
 </body>
 </html>
+

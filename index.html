@@ -50,22 +50,23 @@
 
 <script>
 /* ================= CONFIGURARE =======================
-   Username-urile sunt presetate: george_g și anca_g
-   Înlocuiește valorile HASH_SHA256 cu hashurile reale.
-   Vezi mai jos instrucțiunile pentru generare.
+   Am setat parola "grecia" pentru ambii useri (hash SHA-256).
+   Username-uri: george_g, anca_g
+   Daca vrei alta parola, genereaza SHA-256 si inlocuieste valorile.
 =======================================================*/
 
+// SHA-256("grecia") = ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a
 const USERS = {
   "george_g": "ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a",
   "anca_g":   "ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a"
 };
 
-// Linkurile din hub (poți adăuga câte vrei)
+// Linkurile din hub — înlocuiește deep/web cu valorile tale
 const LINKS = [
   {
     title: "Acces principal (App)",
     kind: "app",
-    deep: "tg://resolve?domain=YourGroup",  // înlocuiește cu deep-link-ul tău
+    deep: "tg://resolve?domain=YourGroup",  // înlocuiește cu deep-link
     web:  "https://t.me/YourGroupOrInviteLink" // fallback web
   },
   {
@@ -75,7 +76,7 @@ const LINKS = [
   }
 ];
 
-/* ================== FUNCȚII ====================== */
+/* ============== FUNCȚII ================== */
 
 const userInput = document.getElementById('user');
 const passInput = document.getElementById('pass');
@@ -158,9 +159,8 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 
-// Helper pentru generare hash local (în consolă)
+// Helper pentru generare hash in consola (nu trimite parola online)
 window._ANMAP={sha256hex};
 </script>
 </body>
 </html>
-

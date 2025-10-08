@@ -9,8 +9,8 @@
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:#111}
   .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
   .card{width:100%;max-width:820px;background:var(--card);padding:18px;border-radius:12px;box-shadow:0 8px 28px rgba(13,30,70,0.07)}
-  h1{margin:0 0 8px;font-size:20px}
-  p.lead{margin:0 0 12px;color:var(--muted);font-size:14px}
+  h1{margin:0 0 4px;font-size:22px;font-weight:700;color:#0f3d7a}
+  h2.subtitle{margin:0 0 12px;font-size:15px;font-weight:500;color:var(--muted)}
   label{font-size:13px;color:#333}
   input, select, textarea{width:100%;padding:12px;margin-top:6px;border-radius:9px;border:1px solid var(--border);font-size:15px;background:#fff}
   textarea{min-height:90px;resize:vertical}
@@ -38,18 +38,18 @@
   <div class="wrap">
     <div class="card" role="main" aria-labelledby="title">
       <h1 id="title">ANMAP_login</h1>
-      <p class="lead">Autentificare necesară. Conectarea nu se păstrează — te autentifici la fiecare acces sau revenire în tab.</p>
+      <h2 class="subtitle">Agenția Națională de Mediu și Arii Protejate</h2>
 
       <!-- LOGIN -->
       <div id="loginBox">
         <div class="row cols-2">
           <div>
             <label for="user">Utilizator</label>
-            <input id="user" autocomplete="username" placeholder="george_g / anca_g" />
+            <input id="user" autocomplete="username" placeholder="Introduceți utilizatorul" />
           </div>
           <div>
             <label for="pass">Parolă</label>
-            <input id="pass" type="password" autocomplete="current-password" placeholder="parola" />
+            <input id="pass" type="password" autocomplete="current-password" placeholder="Introduceți parola" />
           </div>
         </div>
         <div class="row section">
@@ -59,7 +59,7 @@
         </div>
       </div>
 
-      <!-- ZONA SECURIZATĂ (formular direct vizibil; sub el buton Telegram Web) -->
+      <!-- ZONA SECURIZATĂ -->
       <div id="secureArea" aria-hidden="true">
         <div class="topbar">
           <p class="note" style="margin:0">Formular intern — Proces-verbal de amplasament</p>
@@ -147,24 +147,18 @@
           </div>
 
           <div class="row">
-            <div>
-              <label>Scop / Obiectiv vizită</label>
-              <textarea name="scop" placeholder="ex: verificare amplasament, evaluare impact, delimitare etc."></textarea>
-            </div>
+            <label>Scop / Obiectiv vizită</label>
+            <textarea name="scop" placeholder="ex: verificare amplasament, evaluare impact, delimitare etc."></textarea>
           </div>
 
           <div class="row">
-            <div>
-              <label>Descriere amplasament</label>
-              <textarea name="descriere" placeholder="Caracteristici teren, acces, utilizare, vecinătăți, habitate, cursuri de apă, zone protejate etc."></textarea>
-            </div>
+            <label>Descriere amplasament</label>
+            <textarea name="descriere" placeholder="Caracteristici teren, acces, utilizare, vecinătăți, habitate, cursuri de apă, zone protejate etc."></textarea>
           </div>
 
           <div class="row">
-            <div>
-              <label>Observații</label>
-              <textarea name="observatii" placeholder="Aspecte suplimentare, neconformități, măsurători indicative"></textarea>
-            </div>
+            <label>Observații</label>
+            <textarea name="observatii" placeholder="Aspecte suplimentare, neconformități, măsurători indicative"></textarea>
           </div>
 
           <div class="row cols-2">
@@ -195,7 +189,7 @@
           </div>
         </form>
 
-        <!-- DOAR Telegram Web (sub formular) -->
+        <!-- DOAR Telegram Web -->
         <div class="section tg-actions">
           <a class="tg-link" id="tgWeb" href="https://web.telegram.org/" target="_blank" rel="noopener">Deschide Telegram Web</a>
         </div>
@@ -204,70 +198,54 @@
   </div>
 
 <script>
-/* ======= CONFIG =======
-   Utilizatori activi: george_g, anca_g
-   Parola comună: "grecia" (hash SHA-256 inclus)
-======================== */
-// SHA-256("grecia") = ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a
+/* ======= CONFIG ======= */
 const USERS = {
   "george_g": "ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a",
   "anca_g":   "ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a"
 };
 
 /* ======= LOGIC ======= */
-const userInput = document.getElementById('user');
-const passInput = document.getElementById('pass');
-const btnLogin = document.getElementById('btnLogin');
-const secureArea = document.getElementById('secureArea');
-const loginBox = document.getElementById('loginBox');
-const warn = document.getElementById('warn');
-const btnLogout = document.getElementById('btnLogout');
-const btnPrint = document.getElementById('btnPrint');
+const userInput=document.getElementById('user');
+const passInput=document.getElementById('pass');
+const btnLogin=document.getElementById('btnLogin');
+const secureArea=document.getElementById('secureArea');
+const loginBox=document.getElementById('loginBox');
+const warn=document.getElementById('warn');
+const btnLogout=document.getElementById('btnLogout');
+const btnPrint=document.getElementById('btnPrint');
 
-// SHA-256 helper
-async function sha256hex(message) {
-  const msgUint8 = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+async function sha256hex(message){
+  const msgUint8=new TextEncoder().encode(message);
+  const hashBuffer=await crypto.subtle.digest('SHA-256',msgUint8);
+  const hashArray=Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-btnLogin.addEventListener('click', async ()=>{
+btnLogin.addEventListener('click',async()=>{
   warn.style.display='none';
-  const u = (userInput.value||'').trim();
-  const p = passInput.value||'';
+  const u=(userInput.value||'').trim();
+  const p=passInput.value||'';
   if(!u||!p){warn.textContent='Completează utilizator și parolă.';warn.style.display='block';return;}
   if(!(u in USERS)){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
-  const h = await sha256hex(p);
+  const h=await sha256hex(p);
   if(h!==USERS[u]){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
-  showSecureArea();
+  loginBox.style.display='none';secureArea.style.display='block';secureArea.setAttribute('aria-hidden','false');
 });
 
-function showSecureArea(){
-  loginBox.style.display='none';
-  secureArea.style.display='block';
-  secureArea.setAttribute('aria-hidden','false');
-}
-
-btnLogout.addEventListener('click', ()=>{
-  passInput.value=''; userInput.value='';
+btnLogout.addEventListener('click',()=>{
+  passInput.value='';userInput.value='';
   secureArea.style.display='none';
   secureArea.setAttribute('aria-hidden','true');
   loginBox.style.display='block';
 });
 
-btnPrint.addEventListener('click', ()=>{ window.print(); });
+btnPrint.addEventListener('click',()=>{window.print();});
 
-// Re-login forțat la revenire pe tab
-document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState==='hidden'){
-    try{ location.reload(); }catch(e){}
-  }
-});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){try{location.reload();}catch(e){}}});
 
-// Helper pentru generare hash (dacă vrei altă parolă)
-window._ANMAP = { sha256hex };
+window._ANMAP={sha256hex};
 </script>
 </body>
 </html>
+
 

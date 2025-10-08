@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<!-- Anti-cache pe client -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>ANMAP_login</title>
 <style>
   :root{--bg:#f4f7fb;--card:#fff;--accent:#165fb1;--muted:#6e7480;--border:#e6e9ef}
@@ -25,7 +29,7 @@
   #secureArea{display:none;margin-top:14px}
   small.warn{display:block;margin-top:10px;color:#9a1c1c}
   .footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-  .tg-link{display:inline-block;text-align:center;padding:12px 16px;border-radius:9px;border:1px solid #dfe6f3;background:transparent;color:var(--accent);text-decoration:none;font-weight:600}
+  .tg-link{display:inline-block;text-align:center;padding:12px 16px;border-radius:9px;border:1px solid #dfe6f3;background:transparent;color:#0f3d7a;text-decoration:none;font-weight:700}
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
   @media print{
     .wrap{padding:0}
@@ -42,32 +46,38 @@
 
       <!-- LOGIN -->
       <div id="loginBox">
-        <div class="row cols-2">
-          <div>
-            <label for="user">Utilizator</label>
-            <input id="user" autocomplete="username" placeholder="Introduceți utilizatorul" />
+        <form id="loginForm" autocomplete="off">
+          <div class="row cols-2">
+            <div>
+              <label for="user">Utilizator</label>
+              <input id="user" name="usr_x" placeholder="Introduceți utilizatorul"
+                     autocomplete="off" autocapitalize="off" spellcheck="false"
+                     readonly onfocus="this.removeAttribute('readonly');"/>
+            </div>
+            <div>
+              <label for="pass">Parolă</label>
+              <input id="pass" name="pwd_x" type="password" placeholder="Introduceți parola"
+                     autocomplete="new-password" autocapitalize="off" spellcheck="false"
+                     readonly onfocus="this.removeAttribute('readonly');"/>
+            </div>
           </div>
-          <div>
-            <label for="pass">Parolă</label>
-            <input id="pass" type="password" autocomplete="current-password" placeholder="Introduceți parola" />
+          <div class="row section">
+            <button id="btnLogin" type="button">Conectare</button>
+            <small class="warn" id="warn" style="display:none"></small>
+            <small class="note">Protecție locală (client-side). Pentru acces cu autentificare reală: Cloudflare Access sau backend propriu.</small>
           </div>
-        </div>
-        <div class="row section">
-          <button id="btnLogin">Conectare</button>
-          <small class="warn" id="warn" style="display:none"></small>
-          <small class="note">Protecție locală (client-side). Pentru acces cu autentificare reală: Cloudflare Access sau backend propriu.</small>
-        </div>
+        </form>
       </div>
 
       <!-- ZONA SECURIZATĂ -->
       <div id="secureArea" aria-hidden="true">
         <div class="topbar">
           <p class="note" style="margin:0">Formular intern — Proces-verbal de amplasament</p>
-          <button id="btnLogout" class="btn-outline">Deconectare</button>
+          <button id="btnLogout" class="btn-outline" type="button">Deconectare</button>
         </div>
 
         <!-- FORMULAR PROCES-VERBAL AMPLASAMENT -->
-        <form id="pvForm" class="section">
+        <form id="pvForm" class="section" autocomplete="off">
           <div class="row cols-3">
             <div><label>Nr. proces-verbal</label><input name="nr_pv" placeholder="ex: 123/2025"></div>
             <div><label>Data</label><input name="data" type="date"></div>
@@ -159,6 +169,20 @@ async function sha256hex(message){
   return hashArray.map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
+function resetToLogin(){
+  // ascunde zona securizată și curăță câmpurile
+  secureArea.style.display='none';
+  secureArea.setAttribute('aria-hidden','true');
+  loginBox.style.display='block';
+  userInput.value='';
+  passInput.value='';
+  // truc anti-autofill: repunem readonly până la focus
+  userInput.setAttribute('readonly','');
+  passInput.setAttribute('readonly','');
+}
+
+document.addEventListener('DOMContentLoaded', resetToLogin);
+
 btnLogin.addEventListener('click',async()=>{
   warn.style.display='none';
   const u=(userInput.value||'').trim();
@@ -167,20 +191,23 @@ btnLogin.addEventListener('click',async()=>{
   if(!(u in USERS)){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
   const h=await sha256hex(p);
   if(h!==USERS[u]){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
-  loginBox.style.display='none';secureArea.style.display='block';secureArea.setAttribute('aria-hidden','false');
+  loginBox.style.display='none';
+  secureArea.style.display='block';
+  secureArea.setAttribute('aria-hidden','false');
 });
 
-btnLogout.addEventListener('click',()=>{
-  passInput.value='';userInput.value='';
-  secureArea.style.display='none';
-  secureArea.setAttribute('aria-hidden','true');
-  loginBox.style.display='block';
-});
-
+btnLogout.addEventListener('click', resetToLogin);
 btnPrint.addEventListener('click',()=>{window.print();});
 
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){try{location.reload();}catch(e){}}});
+// Re-login forțat când: tab devine invizibil, pagina e lăsată în fundal, sau revii din bfcache
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){ try{ location.reload(); }catch(e){} }
+});
+window.addEventListener('pagehide',()=>{ try{ location.reload(); }catch(e){} });
+window.addEventListener('pageshow',(e)=>{ if(e.persisted){ try{ location.reload(); }catch(_){} } });
+window.addEventListener('beforeunload',()=>{ resetToLogin(); });
 
+// expune utilitarul de hash (dacă vrei altă parolă, o generezi în consolă)
 window._ANMAP={sha256hex};
 </script>
 </body>

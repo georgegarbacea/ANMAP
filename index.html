@@ -76,19 +76,16 @@
           <button id="btnLogout" class="btn-outline" type="button">Deconectare</button>
         </div>
 
-        <!-- FORMULAR PROCES-VERBAL AMPLASAMENT -->
         <form id="pvForm" class="section" autocomplete="off">
           <div class="row cols-3">
             <div><label>Nr. proces-verbal</label><input name="nr_pv" placeholder="ex: 123/2025"></div>
             <div><label>Data</label><input name="data" type="date"></div>
             <div><label>Ora</label><input name="ora" type="time"></div>
           </div>
-
           <div class="row cols-2">
             <div><label>Județ</label><input name="judet" placeholder="ex: Brașov"></div>
             <div><label>UAT / Localitate</label><input name="uat" placeholder="ex: Moieciu"></div>
           </div>
-
           <div class="row cols-2">
             <div><label>Adresă / Denumire amplasament</label><input name="adresa" placeholder="ex: Str. Principală nr. 1 / Pajiște alpină..."></div>
             <div>
@@ -100,37 +97,6 @@
               </select>
             </div>
           </div>
-
-          <div class="row cols-3">
-            <div><label>Latitudine (φ)</label><input name="lat" placeholder="ex: 45.5"></div>
-            <div><label>Longitudine (λ)</label><input name="lon" placeholder="ex: 25.35"></div>
-            <div><label>Cota altitudinală (m)</label><input name="alt" placeholder="ex: 950"></div>
-          </div>
-
-          <div class="row cols-2">
-            <div><label>Beneficiar / Titular</label><input name="beneficiar" placeholder="Nume persoană / societate"></div>
-            <div><label>Reprezentant</label><input name="reprezentant" placeholder="Nume și calitate"></div>
-          </div>
-
-          <div class="row cols-2">
-            <div><label>Agent constatator</label><input name="agent" placeholder="Nume și funcție"></div>
-            <div><label>Însoțitori / Martori</label><input name="insotitori" placeholder="Nume / instituții"></div>
-          </div>
-
-          <div class="row"><label>Scop / Obiectiv vizită</label><textarea name="scop" placeholder="ex: verificare amplasament, evaluare impact, delimitare etc."></textarea></div>
-          <div class="row"><label>Descriere amplasament</label><textarea name="descriere" placeholder="Caracteristici teren, acces, utilizare, vecinătăți, habitate, cursuri de apă, zone protejate etc."></textarea></div>
-          <div class="row"><label>Observații</label><textarea name="observatii" placeholder="Aspecte suplimentare, neconformități, măsurători indicative"></textarea></div>
-
-          <div class="row cols-2">
-            <div><label>Măsuri dispuse</label><textarea name="masuri" placeholder="Măsuri/obligații, documente de depus, condiții"></textarea></div>
-            <div><label>Termen</label><input name="termen" type="date"></div>
-          </div>
-
-          <div class="row cols-2">
-            <div><label>Anexe</label><input name="anexe" placeholder="Planșe, poze, coordonate, schițe"></div>
-            <div><label>Semnături (nume complet)</label><input name="semnaturi" placeholder="Agent / Reprezentant"></div>
-          </div>
-
           <div class="footer-actions">
             <button type="button" id="btnPrint">Exportă ca PDF / Print</button>
             <button type="reset" class="btn-outline">Resetează formularul</button>
@@ -139,20 +105,18 @@
 
         <!-- ANMAP_web -->
         <div class="section tg-actions">
-          <a class="tg-link" id="tgWeb" href="https://web.telegram.org/" target="_blank" rel="noopener">ANMAP_web</a>
+          <a class="tg-link" id="tgWeb" href="https://web.telegram.org/">ANMAP_web</a>
         </div>
       </div>
     </div>
   </div>
 
 <script>
-/* ======= CONFIG ======= */
 const USERS={
   "george_g":"ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a",
   "anca_g":"ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a"
 };
 
-/* ======= LOGIC ======= */
 const userInput=document.getElementById('user');
 const passInput=document.getElementById('pass');
 const btnLogin=document.getElementById('btnLogin');
@@ -160,6 +124,7 @@ const secureArea=document.getElementById('secureArea');
 const loginBox=document.getElementById('loginBox');
 const warn=document.getElementById('warn');
 const btnLogout=document.getElementById('btnLogout');
+const tgWeb=document.getElementById('tgWeb');
 const btnPrint=document.getElementById('btnPrint');
 
 async function sha256hex(message){
@@ -170,20 +135,21 @@ async function sha256hex(message){
 }
 
 function resetToLogin(){
-  // ascunde zona securizată și curăță câmpurile
   secureArea.style.display='none';
   secureArea.setAttribute('aria-hidden','true');
   loginBox.style.display='block';
   userInput.value='';
   passInput.value='';
-  // truc anti-autofill: repunem readonly până la focus
   userInput.setAttribute('readonly','');
   passInput.setAttribute('readonly','');
 }
 
-document.addEventListener('DOMContentLoaded', resetToLogin);
+function forceReloadNow(){
+  const newUrl = window.location.origin + window.location.pathname + '?r=' + Date.now();
+  window.location.replace(newUrl);
+}
 
-btnLogin.addEventListener('click',async()=>{
+btnLogin.addEventListener('click', async ()=>{
   warn.style.display='none';
   const u=(userInput.value||'').trim();
   const p=passInput.value||'';
@@ -196,20 +162,24 @@ btnLogin.addEventListener('click',async()=>{
   secureArea.setAttribute('aria-hidden','false');
 });
 
-btnLogout.addEventListener('click', resetToLogin);
-btnPrint.addEventListener('click',()=>{window.print();});
+btnLogout.addEventListener('click', forceReloadNow);
+btnPrint.addEventListener('click',()=>window.print());
+tgWeb.addEventListener('click',()=>forceReloadNow());
 
-// Re-login forțat când: tab devine invizibil, pagina e lăsată în fundal, sau revii din bfcache
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='hidden'){ try{ location.reload(); }catch(e){} }
+// *** varianta "dură" — reîncarcă instant la părăsirea tabului ***
+['visibilitychange','blur','pagehide','beforeunload'].forEach(evt=>{
+  window.addEventListener(evt,()=>{
+    if(document.visibilityState==='hidden'||evt!=='visibilitychange'){
+      forceReloadNow();
+    }
+  });
 });
-window.addEventListener('pagehide',()=>{ try{ location.reload(); }catch(e){} });
-window.addEventListener('pageshow',(e)=>{ if(e.persisted){ try{ location.reload(); }catch(_){} } });
-window.addEventListener('beforeunload',()=>{ resetToLogin(); });
 
-// expune utilitarul de hash (dacă vrei altă parolă, o generezi în consolă)
+// asigurare suplimentară la revenirea în tab
+window.addEventListener('focus',forceReloadNow);
+window.addEventListener('pageshow',forceReloadNow);
+
 window._ANMAP={sha256hex};
 </script>
 </body>
 </html>
-

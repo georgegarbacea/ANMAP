@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#165fb1"/>
 <title>ANMAP_login</title>
 <style>
   :root{--bg:#f4f7fb;--card:#fff;--accent:#165fb1;--muted:#6e7480;--border:#e6e9ef}
@@ -15,12 +14,12 @@
   h1{margin:0 0 4px;font-size:22px;font-weight:700;color:#0f3d7a}
   h2.subtitle{margin:0 0 12px;font-size:15px;font-weight:500;color:var(--muted)}
   label{font-size:13px;color:#333}
-  input, select, textarea{width:100%;padding:12px;margin-top:6px;border-radius:9px;border:1px solid var(--border);font-size:15px;background:#fff}
+  input,select,textarea{width:100%;padding:12px;margin-top:6px;border-radius:9px;border:1px solid var(--border);font-size:15px;background:#fff}
   textarea{min-height:90px;resize:vertical}
   .row{display:grid;grid-template-columns:1fr;gap:12px}
   .row.cols-2{grid-template-columns:1fr 1fr}
   .row.cols-3{grid-template-columns:1fr 1fr 1fr}
-  @media (max-width:720px){ .row.cols-2, .row.cols-3{grid-template-columns:1fr} }
+  @media (max-width:720px){ .row.cols-2,.row.cols-3{grid-template-columns:1fr} }
   button{padding:12px 16px;border-radius:9px;border:0;background:var(--accent);color:white;font-weight:600;cursor:pointer}
   .btn-outline{background:transparent;color:var(--accent);border:1px solid #dfe3f0}
   .section{margin-top:16px;padding-top:8px;border-top:1px dashed #e3e8f3}
@@ -30,13 +29,14 @@
   .footer-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
   .tg-link{display:inline-block;text-align:center;padding:12px 16px;border-radius:9px;border:1px solid #dfe6f3;background:transparent;color:#0f3d7a;text-decoration:none;font-weight:700}
   .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-  @media print{ .wrap{padding:0} .card{box-shadow:none;border-radius:0} #loginBox,.topbar,.tg-actions{display:none!important} }
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .overlay .dialog{background:#fff;border-radius:12px;max-width:520px;width:100%;padding:20px;text-align:center}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card" role="main" aria-labelledby="title">
-      <h1 id="title">ANMAP_login</h1>
+    <div class="card" role="main">
+      <h1>ANMAP_login</h1>
       <h2 class="subtitle">Agenția Națională de Mediu și Arii Protejate</h2>
 
       <!-- LOGIN -->
@@ -54,7 +54,7 @@
         <div class="row section">
           <button id="btnLogin">Conectare</button>
           <small class="warn" id="warn" style="display:none"></small>
-          <small class="note">Protecție locală (client-side). Sesiunea se resetează automat la ieșire.</small>
+          <small class="note">Sesiunea nu se păstrează. La revenire vei fi pe login.</small>
         </div>
       </div>
 
@@ -65,19 +65,16 @@
           <button id="btnLogout" class="btn-outline">Deconectare</button>
         </div>
 
-        <!-- FORMULAR -->
         <form id="pvForm" class="section">
           <div class="row cols-3">
             <div><label>Nr. proces-verbal</label><input name="nr_pv" placeholder="ex: 123/2025"></div>
             <div><label>Data</label><input name="data" type="date"></div>
             <div><label>Ora</label><input name="ora" type="time"></div>
           </div>
-
           <div class="row cols-2">
             <div><label>Județ</label><input name="judet" placeholder="ex: Brașov"></div>
             <div><label>UAT / Localitate</label><input name="uat" placeholder="ex: Moieciu"></div>
           </div>
-
           <div class="row cols-2">
             <div><label>Adresă / Denumire amplasament</label><input name="adresa" placeholder="ex: Str. Principală nr. 1 / Pajiște alpină..."></div>
             <div>
@@ -89,103 +86,117 @@
               </select>
             </div>
           </div>
-
-          <div class="row cols-3">
-            <div><label>Latitudine (φ)</label><input name="lat" placeholder="ex: 45.5"></div>
-            <div><label>Longitudine (λ)</label><input name="lon" placeholder="ex: 25.35"></div>
-            <div><label>Cota altitudinală (m)</label><input name="alt" placeholder="ex: 950"></div>
-          </div>
-
-          <div class="row cols-2">
-            <div><label>Beneficiar / Titular</label><input name="beneficiar" placeholder="Nume persoană / societate"></div>
-            <div><label>Reprezentant</label><input name="reprezentant" placeholder="Nume și calitate"></div>
-          </div>
-
-          <div class="row cols-2">
-            <div><label>Agent constatator</label><input name="agent" placeholder="Nume și funcție"></div>
-            <div><label>Însoțitori / Martori</label><input name="insotitori" placeholder="Nume / instituții"></div>
-          </div>
-
-          <div class="row"><label>Scop / Obiectiv vizită</label><textarea name="scop" placeholder="ex: verificare amplasament, evaluare impact etc."></textarea></div>
-          <div class="row"><label>Descriere amplasament</label><textarea name="descriere" placeholder="Caracteristici teren, vecinătăți, habitate etc."></textarea></div>
-          <div class="row"><label>Observații</label><textarea name="observatii" placeholder="Aspecte suplimentare, neconformități etc."></textarea></div>
-
-          <div class="row cols-2">
-            <div><label>Măsuri dispuse</label><textarea name="masuri" placeholder="Măsuri/obligații, condiții etc."></textarea></div>
-            <div><label>Termen</label><input name="termen" type="date"></div>
-          </div>
-
-          <div class="row cols-2">
-            <div><label>Anexe</label><input name="anexe" placeholder="Planșe, poze, coordonate"></div>
-            <div><label>Semnături</label><input name="semnaturi" placeholder="Agent / Reprezentant"></div>
-          </div>
-
           <div class="footer-actions">
             <button type="button" id="btnPrint">Exportă PDF / Print</button>
-            <button type="reset" class="btn-outline">Resetează formularul</button>
+            <button type="reset" class="btn-outline">Resetează</button>
           </div>
         </form>
 
-        <!-- Telegram link -->
         <div class="section tg-actions">
-          <a class="tg-link" id="tgWeb" href="https://web.telegram.org/" target="_blank">ANMAP_web</a>
+          <a class="tg-link" id="tgWeb" href="#">ANMAP_web</a>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Overlay info auto-close -->
+  <div id="overlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="dialog">
+      <h3 style="margin-top:0">Se deschide Telegram…</h3>
+      <p>Din motive de securitate, tabul Telegram va fi închis automat în <b id="count">15</b> secunde (unde este posibil).<br/>
+      Dacă nu se închide singur, te rugăm să îl închizi manual.</p>
+      <button id="btnBackLogin" class="btn-outline" style="margin-top:10px">Revino la login</button>
+    </div>
+  </div>
+
 <script>
+/* === Config utilizatori === */
 const USERS={
   "george_g":"ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a",
   "anca_g":"ab25424b76ddc669226641b8aa053cfe537df61d33f935fba3687c4924b9c84a"
 };
 
-const user=document.getElementById('user');
-const pass=document.getElementById('pass');
-const btn=document.getElementById('btnLogin');
-const logout=document.getElementById('btnLogout');
-const secure=document.getElementById('secureArea');
-const login=document.getElementById('loginBox');
-const warn=document.getElementById('warn');
-const tg=document.getElementById('tgWeb');
+/* === Elemente UI === */
+const $ = id => document.getElementById(id);
+const user=$('user'), pass=$('pass'), btn=$('btnLogin'), warn=$('warn');
+const login=$('loginBox'), secure=$('secureArea'), logout=$('btnLogout'), printBtn=$('btnPrint');
+const tg=$('tgWeb'), overlay=$('overlay'), countEl=$('count'), backBtn=$('btnBackLogin');
 
-async function sha256hex(msg){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
+let tgWin=null, countdownTimer=null, closeTimer=null;
+
+async function sha256hex(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
 function resetLogin(){
   secure.style.display='none';
+  secure.setAttribute('aria-hidden','true');
   login.style.display='block';
   user.value=''; pass.value='';
+  user.setAttribute('readonly',''); pass.setAttribute('readonly','');
+}
+function forceFresh(){
+  const url=new URL(location.href);
+  url.searchParams.set('r', Date.now().toString());
+  location.replace(url.toString());
 }
 
-function forceReload(){
-  window.location.replace(window.location.origin+window.location.pathname+'?r='+Date.now());
-}
-
-// Login logic
-btn.addEventListener('click', async()=>{
+/* === Login logic === */
+btn.addEventListener('click', async ()=>{
   warn.style.display='none';
-  const u=user.value.trim(), p=pass.value;
+  const u=(user.value||'').trim(), p=pass.value||'';
   if(!u||!p){warn.textContent='Completează utilizator și parolă.';warn.style.display='block';return;}
   if(!(u in USERS)){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
   const h=await sha256hex(p);
   if(h!==USERS[u]){warn.textContent='Utilizator sau parolă incorecte.';warn.style.display='block';return;}
-  login.style.display='none'; secure.style.display='block';
+  login.style.display='none';
+  secure.style.display='block';
+  secure.setAttribute('aria-hidden','false');
+});
+logout.addEventListener('click', forceFresh);
+printBtn.addEventListener('click', ()=>window.print());
+
+/* === Telegram: tab nou + auto-close (best-effort) === */
+tg.addEventListener('click', e=>{
+  e.preventDefault();
+  // 1) deschide Telegram în tab nou
+  tgWin = window.open('https://web.telegram.org/', '_blank', 'noopener,noreferrer');
+  // 2) afișează overlay cu numărătoare
+  overlay.style.display='flex';
+  let secs=15; countEl.textContent=secs;
+  countdownTimer = setInterval(()=>{
+    secs--; countEl.textContent=secs;
+    if(secs<=0){ clearInterval(countdownTimer); }
+  },1000);
+  // 3) încearcă să închidă fereastra după 15s (doar dacă platforma permite)
+  closeTimer = setTimeout(()=>{
+    try{
+      if(tgWin && !tgWin.closed){ tgWin.close(); }
+    }catch(e){}
+    // revenim la login în app
+    forceFresh();
+  }, 15000);
 });
 
-logout.addEventListener('click', forceReload);
-tg.addEventListener('click', ()=>{ setTimeout(forceReload,200); });
-document.getElementById('btnPrint').addEventListener('click',()=>window.print());
+/* Buton „Revino la login” din overlay */
+backBtn.addEventListener('click', ()=>{ forceFresh(); });
 
-// Reload la revenire în browser sau ieșire
-['visibilitychange','blur','pagehide','beforeunload','focus','pageshow'].forEach(e=>{
-  window.addEventListener(e,()=>{ forceReload(); });
+/* === Reset la orice revenire în aplicație === */
+['visibilitychange','blur','pagehide','beforeunload','focus','pageshow'].forEach(evt=>{
+  window.addEventListener(evt, ()=>{
+    // la revenire ne asigurăm de login curat
+    if(evt==='visibilitychange' && document.visibilityState!=='visible') return;
+    resetLogin();
+  });
 });
 
+/* === PWA register === */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
+/* Init */
 document.addEventListener('DOMContentLoaded', resetLogin);
 </script>
 </body>
 </html>
-
